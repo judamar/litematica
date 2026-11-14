@@ -13,6 +13,8 @@ import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -21,6 +23,7 @@ import net.minecraft.world.chunk.Chunk;
 
 import malilib.overlay.message.MessageDispatcher;
 import malilib.util.game.wrap.EntityWrap;
+import malilib.util.game.wrap.NbtWrap;
 import malilib.util.game.wrap.RegistryUtils;
 import malilib.util.position.IntBoundingBox;
 import malilib.util.position.LayerRange;
@@ -193,7 +196,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
                         continue;
                     }
 
-                    this.sendSetBlockCommand(posMutable.getX(), posMutable.getY(), posMutable.getZ(), stateSchematicOrig, player);
+                    this.sendSetBlockCommand(posMutable.getX(), posMutable.getY(), posMutable.getZ(), stateSchematicOrig, worldSchematic, player);
 
                     if (++this.sentCommandsThisTick >= this.maxCommandsPerTick)
                     {
@@ -246,7 +249,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
         }
     }
 
-    private void sendSetBlockCommand(int x, int y, int z, IBlockState state, EntityPlayerSP player)
+    private void sendSetBlockCommand(int x, int y, int z, IBlockState state, WorldSchematic worldSchematic, EntityPlayerSP player)
     {
         Block block = state.getBlock();
         String blockName = RegistryUtils.getBlockIdStr(block);
@@ -258,6 +261,30 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
 
         String cmdName = Configs.Generic.COMMAND_NAME_SETBLOCK.getValue();
         String strCommand = String.format("/%s %d %d %d %s %d", cmdName, x, y, z, blockName, block.getMetaFromState(state));
+
+        // The tile entity data can make the command longer than the 256 characters of the vanilla chat limit,
+        // so it can only be added when the paster is supported, otherwise the command would get cut off.
+        // The schematic world already has the placement's rotation and mirror applied to the tile entities.
+        if (ServerPasterPacketHandler.INSTANCE.isSupported())
+        {
+            TileEntity te = worldSchematic.getTileEntity(new BlockPos(x, y, z));
+
+            if (te != null)
+            {
+                NBTTagCompound tag = te.writeToNBT(new NBTTagCompound());
+
+                // The position and the id come from the command and the block
+                NbtWrap.remove(tag, "id");
+                NbtWrap.remove(tag, "x");
+                NbtWrap.remove(tag, "y");
+                NbtWrap.remove(tag, "z");
+
+                if (tag.isEmpty() == false)
+                {
+                    strCommand += " replace " + tag;
+                }
+            }
+        }
 
         ServerPasterPacketHandler.INSTANCE.sendCommand(strCommand);
         ++this.sentCommandsTotal;
