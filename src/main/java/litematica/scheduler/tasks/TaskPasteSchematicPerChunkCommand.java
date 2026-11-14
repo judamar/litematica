@@ -21,11 +21,11 @@ import net.minecraft.world.chunk.Chunk;
 
 import malilib.overlay.message.MessageDispatcher;
 import malilib.util.game.wrap.EntityWrap;
-import malilib.util.game.wrap.GameUtils;
 import malilib.util.game.wrap.RegistryUtils;
 import malilib.util.position.IntBoundingBox;
 import malilib.util.position.LayerRange;
 import litematica.config.Configs;
+import litematica.network.ServerPasterPacketHandler;
 import litematica.schematic.placement.SchematicPlacement;
 import litematica.util.value.ReplaceBehavior;
 import litematica.world.SchematicWorldHandler;
@@ -62,7 +62,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
 
         if (this.sentCommandsTotal == 0)
         {
-            GameUtils.getClientPlayer().sendChatMessage("/gamerule sendCommandFeedback false");
+            ServerPasterPacketHandler.INSTANCE.sendCommand("/gamerule sendCommandFeedback false");
         }
 
         while (this.chunks.isEmpty() == false)
@@ -241,7 +241,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
                 System.out.printf("nbt: %s\n", nbtString);
                 */
 
-                player.sendChatMessage(strCommand);
+                ServerPasterPacketHandler.INSTANCE.sendCommand(strCommand);
             }
         }
     }
@@ -259,7 +259,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
         String cmdName = Configs.Generic.COMMAND_NAME_SETBLOCK.getValue();
         String strCommand = String.format("/%s %d %d %d %s %d", cmdName, x, y, z, blockName, block.getMetaFromState(state));
 
-        player.sendChatMessage(strCommand);
+        ServerPasterPacketHandler.INSTANCE.sendCommand(strCommand);
         ++this.sentCommandsTotal;
     }
 
@@ -278,7 +278,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
             MessageDispatcher.error().screenOrActionbar().translate("litematica.message.error.schematic_paste_failed");
         }
 
-        GameUtils.sendCommand("/gamerule sendCommandFeedback true");
+        ServerPasterPacketHandler.INSTANCE.sendCommand("/gamerule sendCommandFeedback true");
 
         super.stop();
     }
