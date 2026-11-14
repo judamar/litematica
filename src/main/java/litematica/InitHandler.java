@@ -14,6 +14,7 @@ import litematica.gui.ConfigScreen;
 import litematica.input.LitematicaHotkeyProvider;
 import litematica.input.MouseScrollHandlerImpl;
 import litematica.network.SchematicSavePacketHandler;
+import litematica.network.ServerPasterPacketHandler;
 import litematica.render.infohud.StatusInfoRenderer;
 import litematica.scheduler.ClientTickHandler;
 import litematica.util.LitematicaDirectories;
@@ -53,5 +54,6 @@ public class InitHandler implements InitializationHandler
         LitematicaDirectories.getSchematicsBaseDirectory();
 
         Registry.CLIENT_PACKET_CHANNEL_HANDLER.registerClientChannelHandler(SchematicSavePacketHandler.INSTANCE);
+        Registry.CLIENT_PACKET_CHANNEL_HANDLER.registerClientChannelHandler(ServerPasterPacketHandler.INSTANCE);
     }
 }

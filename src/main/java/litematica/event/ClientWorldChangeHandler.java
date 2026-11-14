@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import net.minecraft.client.multiplayer.WorldClient;
 
 import litematica.data.DataManager;
+import litematica.network.ServerPasterPacketHandler;
 import litematica.world.SchematicWorldHandler;
 
 public class ClientWorldChangeHandler implements malilib.event.ClientWorldChangeHandler
@@ -24,6 +25,7 @@ public class ClientWorldChangeHandler implements malilib.event.ClientWorldChange
     public void onPostClientWorldChange(@Nullable WorldClient worldBefore, @Nullable WorldClient worldAfter)
     {
         SchematicWorldHandler.recreateSchematicWorld(worldAfter == null);
+        ServerPasterPacketHandler.INSTANCE.onClientWorldChange(worldAfter);
 
         if (worldAfter != null)
         {
