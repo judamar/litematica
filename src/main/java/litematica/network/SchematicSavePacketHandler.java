@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 import com.google.common.collect.ImmutableList;
+import io.netty.buffer.ByteBufInputStream;
 import io.netty.buffer.Unpooled;
 
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
@@ -48,7 +51,18 @@ public class SchematicSavePacketHandler extends BasePacketHandler
     {
         try
         {
-            NBTTagCompound tag = buf.readCompoundTag();
+            // buf.readCompoundTag() has a 2 MiB limit, which large responses exceed.
+            // The size is already limited by the PacketSplitter.
+            int readerIndex = buf.readerIndex();
+            NBTTagCompound tag = null;
+
+            // A zero type byte is an empty tag, which readCompoundTag() also returns as null
+            if (buf.readByte() != 0)
+            {
+                buf.readerIndex(readerIndex);
+                tag = CompressedStreamTools.read(new ByteBufInputStream(buf), NBTSizeTracker.INFINITE);
+            }
+
             UUID taskId = NbtUtils.readUUID(tag);
 
             if (taskId != null)
