@@ -16,6 +16,7 @@ import fi.dy.masa.litematica.gui.ConfigScreen;
 import fi.dy.masa.litematica.input.LitematicaHotkeyProvider;
 import fi.dy.masa.litematica.input.MouseScrollHandlerImpl;
 import fi.dy.masa.litematica.network.SchematicSavePacketHandler;
+import fi.dy.masa.litematica.network.ServerPasterPacketHandler;
 import fi.dy.masa.litematica.render.infohud.StatusInfoRenderer;
 import fi.dy.masa.litematica.scheduler.ClientTickHandler;
 
@@ -53,5 +54,6 @@ public class InitHandler implements InitializationHandler
         DataManager.getSchematicsBaseDirectory();
 
         Registry.CLIENT_PACKET_CHANNEL_HANDLER.registerClientChannelHandler(SchematicSavePacketHandler.INSTANCE);
+        Registry.CLIENT_PACKET_CHANNEL_HANDLER.registerClientChannelHandler(ServerPasterPacketHandler.INSTANCE);
     }
 }
