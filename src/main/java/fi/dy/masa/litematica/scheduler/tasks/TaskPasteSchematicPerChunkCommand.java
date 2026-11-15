@@ -22,6 +22,7 @@ import fi.dy.masa.malilib.util.game.wrap.EntityWrap;
 import fi.dy.masa.malilib.util.position.IntBoundingBox;
 import fi.dy.masa.malilib.util.position.LayerRange;
 import fi.dy.masa.litematica.config.Configs;
+import fi.dy.masa.litematica.network.ServerPasterPacketHandler;
 import fi.dy.masa.litematica.schematic.placement.SchematicPlacement;
 import fi.dy.masa.litematica.util.ReplaceBehavior;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
@@ -58,7 +59,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
 
         if (this.sentCommandsTotal == 0)
         {
-            this.mc.player.sendChatMessage("/gamerule sendCommandFeedback false");
+            ServerPasterPacketHandler.INSTANCE.sendCommand("/gamerule sendCommandFeedback false");
         }
 
         while (this.chunks.isEmpty() == false)
@@ -237,7 +238,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
                 System.out.printf("nbt: %s\n", nbtString);
                 */
 
-                player.sendChatMessage(strCommand);
+                ServerPasterPacketHandler.INSTANCE.sendCommand(strCommand);
             }
         }
     }
@@ -256,7 +257,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
         String cmdName = Configs.Generic.COMMAND_NAME_SETBLOCK.getValue();
         String strCommand = String.format("/%s %d %d %d %s %d", cmdName, x, y, z, blockName, block.getMetaFromState(state));
 
-        player.sendChatMessage(strCommand);
+        ServerPasterPacketHandler.INSTANCE.sendCommand(strCommand);
         ++this.sentCommandsTotal;
     }
 
@@ -277,7 +278,7 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
 
         if (this.mc.player != null)
         {
-            this.mc.player.sendChatMessage("/gamerule sendCommandFeedback true");
+            ServerPasterPacketHandler.INSTANCE.sendCommand("/gamerule sendCommandFeedback true");
         }
 
         super.stop();
