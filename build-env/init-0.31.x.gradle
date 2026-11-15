@@ -1,0 +1,27 @@
+// Gradle init script for building the Litematica 0.31.x line (package fi.dy.masa.litematica, malilib 0.53.0)
+// with ForgeGradle 2.3.4. build.sh passes it with -I and sets LITEMATICA_ENV_WORK to <repo>/build-env/.work.
+// The runtime classpath and the contents of the output jar are not changed.
+def work = System.getenv('LITEMATICA_ENV_WORK')
+
+if (work == null)
+{
+	throw new GradleException('LITEMATICA_ENV_WORK is not set, run build-env/build.sh instead of calling Gradle directly')
+}
+
+allprojects {
+	// 1. The official malilib 0.53.0 deobf jar from the masa maven makes ForgeGradle fail in :deobfCompileDeobfDepTask0 with
+	// "ZipException: invalid entry compressed size (expected 67 but got 69 bytes)" (entry pack.mcmeta).
+	// make-localrepo.sh puts the same jar, repacked with `jar cf`, in this file maven repo.
+	// allprojects runs before build.gradle is evaluated, so this repo comes first in the list and wins over the masa maven.
+	repositories {
+		maven { url 'file://' + work + '/localrepo' }
+	}
+
+	afterEvaluate { project ->
+		// 2. javac (and the Mixin annotation processor) refuse to read two vanilla classes ("bad RuntimeInvisibleParameterAnnotations
+		// attribute"). The helper jar made by ParamAnnotationFixer goes in front of the compile classpath only.
+		project.tasks.withType(JavaCompile) {
+			classpath = project.files(work + '/fixed-mc.jar') + classpath
+		}
+	}
+}
