@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import fi.dy.masa.malilib.util.game.wrap.GameUtils;
 import fi.dy.masa.litematica.data.DataManager;
 import fi.dy.masa.litematica.input.MouseScrollHandlerImpl;
+import fi.dy.masa.litematica.network.ServerContainerSync;
 import fi.dy.masa.litematica.schematic.verifier.SchematicVerifierManager;
 
 public class ClientTickHandler implements fi.dy.masa.malilib.event.ClientTickHandler
@@ -18,6 +19,7 @@ public class ClientTickHandler implements fi.dy.masa.malilib.event.ClientTickHan
         DataManager.getRenderLayerRange().followPlayerIfEnabled(mc.player);
         DataManager.getSchematicPlacementManager().processQueuedChunks();
         TaskScheduler.getInstanceClient().runTasks();
+        ServerContainerSync.INSTANCE.onTick(mc);
 
         if ((this.tickCounter) % 10 == 0)
         {

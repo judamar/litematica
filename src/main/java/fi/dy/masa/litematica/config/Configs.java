@@ -65,6 +65,7 @@ public class Configs
         public static final BooleanConfig RENDER_MATERIALS_IN_GUI                   = new BooleanConfig("renderMaterialListInGuis", true);
         public static final BooleanConfig RENDER_THREAD_NO_TIMEOUT                  = new BooleanConfig("renderThreadNoTimeout", true);
         public static final BooleanConfig REQUIRE_ADJACENT_CHUNKS                   = new BooleanConfig("requireAdjacentChunks", true);
+        public static final BooleanConfig SERVER_CONTAINER_PREVIEW                  = new BooleanConfig("serverContainerPreview", true);
         public static final StringConfig  TOOL_ITEM                                 = new StringConfig( "toolItem", "minecraft:stick");
 
         public static final OptionListConfig<SelectionMode> DEFAULT_AREA_SELECTION_MODE   = new OptionListConfig<>("defaultAreaSelectionMode", SelectionMode.SIMPLE, SelectionMode.VALUES);
@@ -104,6 +105,7 @@ public class Configs
                 REQUIRE_ADJACENT_CHUNKS,
                 SCHEMATIC_BROWSER_COLUMNS,
                 SELECTION_CORNERS_MODE,
+                SERVER_CONTAINER_PREVIEW,
                 SIGN_TEXT_PASTE,
                 TOOL_ITEM_ENABLED,
                 TOOL_ITEM
