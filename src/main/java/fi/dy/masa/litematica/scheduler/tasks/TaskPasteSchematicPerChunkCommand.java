@@ -13,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -218,9 +219,18 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
     {
         AxisAlignedBB bb = new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX + 1, box.maxY + 1, box.maxZ + 1);
         List<Entity> entities = worldSchematic.getEntitiesWithinAABBExcludingEntity(null, bb);
+        // The entity NBT (container contents, rotation...) can make the command longer than the 256 characters
+        // of the vanilla chat limit, so it can only be added when the paster is supported.
+        final boolean withNbt = ServerPasterPacketHandler.INSTANCE.isSupported();
 
         for (Entity entity : entities)
         {
+            // Riders are summoned together with their vehicle, as part of its "Passengers" NBT
+            if (withNbt && entity.isRiding())
+            {
+                continue;
+            }
+
             ResourceLocation rl = EntityList.getKey(entity);
 
             if (rl != null)
@@ -234,6 +244,25 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
 
                 String strCommand = String.format(Locale.ROOT, "/summon %s %f %f %f", entityName,
                                                   EntityWrap.getX(entity), EntityWrap.getY(entity), EntityWrap.getZ(entity));
+
+                if (withNbt)
+                {
+                    NBTTagCompound tag = new NBTTagCompound();
+
+                    if (entity.writeToNBTOptional(tag))
+                    {
+                        // The id and the position come from the command. The UUIDs must go, otherwise the
+                        // summon fails when the original entity is still in the world.
+                        NbtWrap.remove(tag, "id");
+                        NbtWrap.remove(tag, "Pos");
+                        removeUuids(tag);
+
+                        if (tag.isEmpty() == false)
+                        {
+                            strCommand += " " + tag;
+                        }
+                    }
+                }
                 /*
                 String strCommand = String.format("/summon %s %f %f %f %s", entityName, entity.posX, entity.posY, entity.posZ, nbtString);
                 System.out.printf("entity: %s\n", entity);
@@ -242,6 +271,22 @@ public class TaskPasteSchematicPerChunkCommand extends TaskPasteSchematicPerChun
                 */
 
                 ServerPasterPacketHandler.INSTANCE.sendCommand(strCommand);
+            }
+        }
+    }
+
+    private static void removeUuids(NBTTagCompound tag)
+    {
+        NbtWrap.remove(tag, "UUIDMost");
+        NbtWrap.remove(tag, "UUIDLeast");
+
+        if (NbtWrap.containsList(tag, "Passengers"))
+        {
+            NBTTagList passengers = NbtWrap.getListOfCompounds(tag, "Passengers");
+
+            for (int i = 0; i < NbtWrap.getListSize(passengers); ++i)
+            {
+                removeUuids(NbtWrap.getCompoundAt(passengers, i));
             }
         }
     }
