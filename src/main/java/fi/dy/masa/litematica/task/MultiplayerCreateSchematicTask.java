@@ -137,7 +137,7 @@ public class MultiplayerCreateSchematicTask extends TaskBase
         {
             this.readBlocks(regionTag, region::setBlockStateContainer);
             this.readBlockEntities(regionTag, region::setBlockEntityMap);
-            this.readEntities(regionTag, region::setEntityList);
+            this.readEntities(regionTag, region.getSize(), region::setEntityList);
             this.readScheduledTicks(regionTag, "BlockTicks", region::setBlockTickMap);
         }
     }
@@ -151,7 +151,7 @@ public class MultiplayerCreateSchematicTask extends TaskBase
             // TODO blocks
             //this.readBlocks(regionTag, region::setBlockStateContainer);
             this.readBlockEntities(regionTag, map -> region.getBlockEntityMap().putAll(map));
-            this.readEntities(regionTag, list -> region.getEntityList().addAll(list));
+            this.readEntities(regionTag, region.getSize(), list -> region.getEntityList().addAll(list));
             this.readScheduledTicks(regionTag, "BlockTicks", map -> region.getBlockTickMap().putAll(map));
         }
     }
@@ -237,13 +237,19 @@ public class MultiplayerCreateSchematicTask extends TaskBase
         }
     }
 
-    protected void readEntities(NBTTagCompound regionTag, Consumer<List<EntityInfo>> consumer)
+    protected void readEntities(NBTTagCompound regionTag, Vec3i regionSize, Consumer<List<EntityInfo>> consumer)
     {
         if (NbtWrap.containsList(regionTag, "Entities"))
         {
             NBTTagList listTag = NbtWrap.getListOfCompounds(regionTag, "Entities");
             ArrayList<EntityInfo> list = new ArrayList<>();
             final int size = NbtWrap.getListSize(listTag);
+
+            // The server sends positions relative to the minimum corner of the region, but a schematic stores
+            // them relative to the first corner (pos1), which is the maximum corner on axes with a negative size.
+            final double offX = regionSize.getX() < 0 ? regionSize.getX() + 1 : 0;
+            final double offY = regionSize.getY() < 0 ? regionSize.getY() + 1 : 0;
+            final double offZ = regionSize.getZ() < 0 ? regionSize.getZ() + 1 : 0;
 
             for (int i = 0; i < size; ++i)
             {
@@ -252,7 +258,9 @@ public class MultiplayerCreateSchematicTask extends TaskBase
 
                 if (pos != null)
                 {
-                    NbtWrap.remove(tag, "Pos");
+                    pos = pos.add(offX, offY, offZ);
+                    // keep "Pos" in the entity NBT, the schematic writer stores the NBT as is
+                    NbtUtils.writeVec3dToListTag(pos, tag);
                     list.add(new EntityInfo(pos, tag));
                 }
             }
