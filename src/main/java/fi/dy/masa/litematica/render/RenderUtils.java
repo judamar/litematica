@@ -28,9 +28,11 @@ import fi.dy.masa.malilib.render.inventory.InventoryRenderUtils;
 import fi.dy.masa.malilib.util.StringUtils;
 import fi.dy.masa.malilib.util.data.Color4f;
 import fi.dy.masa.malilib.util.game.wrap.EntityWrap;
+import fi.dy.masa.malilib.util.game.wrap.GameUtils;
 import fi.dy.masa.malilib.util.inventory.InventoryView;
 import fi.dy.masa.litematica.config.Configs;
 import fi.dy.masa.litematica.config.Hotkeys;
+import fi.dy.masa.litematica.network.ServerContainerSync;
 import fi.dy.masa.litematica.util.BlockInfoAlignment;
 import fi.dy.masa.litematica.util.PositionUtils;
 
@@ -622,6 +624,11 @@ public class RenderUtils
     public static int renderInventoryOverlay(BlockInfoAlignment align, HorizontalAlignment side,
                                              int offY, World world, BlockPos pos)
     {
+        if (world == GameUtils.getClientWorld())
+        {
+            ServerContainerSync.INSTANCE.request(pos);
+        }
+
         Pair<InventoryView, InventoryRenderDefinition> pair = InventoryRenderUtils.getInventoryViewFromBlock(pos, world);
 
         if (pair != null)

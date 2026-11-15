@@ -65,6 +65,11 @@ public class SchematicSavePacketHandler extends BasePacketHandler
 
             if (taskId != null)
             {
+                if (ServerContainerSync.INSTANCE.onResponse(taskId, tag))
+                {
+                    return;
+                }
+
                 MultiplayerCreateSchematicTask task = this.pendingSaveTasks.get(taskId);
 
                 if (task != null)

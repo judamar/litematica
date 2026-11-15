@@ -3,6 +3,7 @@ package fi.dy.masa.litematica.event;
 import javax.annotation.Nullable;
 import net.minecraft.client.multiplayer.WorldClient;
 import fi.dy.masa.litematica.data.DataManager;
+import fi.dy.masa.litematica.network.ServerContainerSync;
 import fi.dy.masa.litematica.network.ServerPasterPacketHandler;
 import fi.dy.masa.litematica.world.SchematicWorldHandler;
 
@@ -27,6 +28,7 @@ public class ClientWorldChangeHandler implements fi.dy.masa.malilib.event.Client
         // This has to be the post hook: malilib calls it at the end of Minecraft.loadWorld(),
         // when the player and thus the connection exist. In the pre hook they are still null on the first join.
         ServerPasterPacketHandler.INSTANCE.onClientWorldChange(worldAfter);
+        ServerContainerSync.INSTANCE.reset();
 
         if (worldAfter != null)
         {
